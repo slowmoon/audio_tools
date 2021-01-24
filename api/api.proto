@@ -1,0 +1,58 @@
+// 定义项目 API 的 proto 文件 可以同时描述 gRPC 和 HTTP API
+// protobuf 文件参考:
+//  - https://developers.google.com/protocol-buffers/
+syntax = "proto3";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+// package 命名使用 {appid}.{version} 的方式, version 形如 v1, v2 ..
+package demo.service.v1;
+
+// NOTE: 最后请删除这些无用的注释 (゜-゜)つロ
+
+option go_package = "api";
+option (gogoproto.goproto_getters_all) = false;
+
+service Demo {
+  rpc Ping(.google.protobuf.Empty) returns (.google.protobuf.Empty);
+  rpc GetAudioList(.google.protobuf.Empty) returns (GetAudioListRes) {
+    option (google.api.http) = {
+      get: "/v1/audio"
+    };
+  };
+  rpc GetAudioInfo(GetAudioInfoReq) returns (GetAudioInfoRes) {
+    option (google.api.http) = {
+      post: "/v1/audio_info"
+    };
+  };
+}
+
+message GetAudioInfoReq {
+  string  type = 1 [(gogoproto.moretags) = 'form:"type" validate:"required"'];
+  string  origin_url = 2 [(gogoproto.moretags) = 'form:"origin_url" validate:"required"'];
+}
+
+message GetAudioInfoRes {
+  string video_url = 1;
+}
+
+message GetAudioListRes {
+   repeated AudioInfo lists = 1;
+}
+
+message AudioInfo {
+  int64  id = 1;
+  string avatar = 2;
+  string name = 3;
+  string type = 4;
+}
+
+message HelloReq {
+  string name = 1 [(gogoproto.moretags) = 'form:"name" validate:"required"'];
+}
+
+message HelloResp {
+  string Content = 1 [(gogoproto.jsontag) = 'content'];
+}

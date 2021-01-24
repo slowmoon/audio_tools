@@ -1,0 +1,10 @@
+[Client]
+	host = "139.196.11.24"
+    port = 3306
+    username = "root"
+    password  = "abcdefg123"
+    db = "audios"
+    maxlifetime = 60000000000
+    maxidleconn = 1
+    maxopenconn = 2
+
