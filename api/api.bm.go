@@ -14,9 +14,10 @@ package api
 
 import (
 	"context"
-
 	bm "github.com/go-kratos/kratos/pkg/net/http/blademaster"
 	"github.com/go-kratos/kratos/pkg/net/http/blademaster/binding"
+	"io"
+	"net/http"
 )
 import google_protobuf1 "github.com/golang/protobuf/ptypes/empty"
 
@@ -73,4 +74,34 @@ func RegisterDemoBMServer(e *bm.Engine, server DemoBMServer) {
 	e.GET("/demo.service.v1.Demo/Ping", demoPing)
 	e.GET("/v1/audio", demoGetAudioList)
 	e.POST("/v1/audio_info", demoGetAudioInfo)
+	e.GET("/v1/audio_info", demoFetchAudioInfo)
 }
+
+
+
+func demoFetchAudioInfo(c *bm.Context) {
+	p := new(GetAudioInfoReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp1, err := DemoSvc.GetAudioInfo(c, p)
+	if err != nil {
+		return
+	}
+	nrequest , err := http.NewRequest("GET", resp1.VideoUrl, nil)
+	if err != nil {
+		return
+	}
+	nrequest.Header.Add("User-Agent", c.Request.Header.Get("User-Agent"))
+	resp, err := http.DefaultClient.Do(nrequest)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	for k, v := range resp.Header {
+		c.Writer.Header().Set(k,v[0])
+	}
+	c.Writer.WriteHeader(resp.StatusCode)
+	io.Copy(c.Writer, resp.Body)
+}
+
